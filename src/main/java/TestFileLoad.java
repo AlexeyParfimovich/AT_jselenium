@@ -3,6 +3,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -20,6 +21,11 @@ public class TestFileLoad {
         p.setProperty("webdriver.gecko.driver","D:\\JavaProjects\\jselenium\\drivers\\geckodriver.exe");
         p.setProperty("webdriver.chrome.driver","D:\\JavaProjects\\jselenium\\drivers\\chromedriver.exe");
         System.setProperties(p);
+
+        // Запуск Headless chrome !!
+//        ChromeOptions options = new ChromeOptions();
+//        options.setHeadless(true);
+//        driver = new ChromeDriver(options);
 
         driver = new ChromeDriver();
 //        driver = new FirefoxDriver();
