@@ -1,62 +1,89 @@
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.interactions.Locatable;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
+
 public class TestOnliner {
 
     static WebDriver driver;
+    static WebDriverWait waiter1;
+    static WebDriverWait waiter2;
 
     public static void main(String[] args){
 
         Properties p = System.getProperties();
-        p.setProperty("webdriver.gecko.driver","D:\\Java projects\\jselenium\\drivers\\geckodriver.exe");
-        p.setProperty("webdriver.chrome.driver","D:\\Java projects\\jselenium\\drivers\\chromedriver.exe");
+        p.setProperty("webdriver.gecko.driver","D:\\JavaProjects\\jselenium\\drivers\\geckodriver.exe");
+        p.setProperty("webdriver.chrome.driver","D:\\JavaProjects\\jselenium\\drivers\\chromedriver.exe");
 //        p.list(System.out);
         System.setProperties(p);
 
-        //driver = new ChromeDriver();
-        driver = new FirefoxDriver();
+        driver = new ChromeDriver();
+//        driver = new FirefoxDriver();
 
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);                                                 // Задаем таймаут неявного ожидания
+        // Работа с явным ожиданием появления элемента на странице
+        waiter1 = new WebDriverWait(driver, 10);
+        waiter2 = new WebDriverWait(driver, 5);
+
+        // Работа с javascript
+        JavascriptExecutor jse = (JavascriptExecutor) driver;
+
+        // Работа с Actions на странице
+        Actions actions = new Actions(driver);
+
+//        driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);                                                 // Задаем таймаут неявного ожидания
 //        driver.manage().window().setSize(new Dimension(1920, 1080));
         driver.manage().window().maximize();
 
-
         driver.get("https://catalog.onliner.by/display");                                                                   // Работа с checkbox и radiobutton
 
-//        setCheckBox("LG");
-//        setCheckBox("AOC");
-//
-//        resetCheckBox("LG");
-//
-//        WebElement element;
-//        element = driver.findElement(By.xpath("//span[text()='Диагональ']//following::div/select[1]"));          // Работа с ListBox (Select)
-//        scrollToElement(element);                                                                                            // Прогрутка до элемента
-//        element.click();
-//        driver.findElement(By.xpath("//span[text()='Диагональ']/following::div/select[1]/option[2]")).click();
+        // Пример явного ожидания появления элемента на странице
+        waiter1.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//h1[text()='Мониторы']")));
 
-//        selectOptions("Диагональ",1,3);
+        jse.executeScript("window.scrollBy(0, 800)","");
 
-//        element = driver.findElement(By.xpath("//span[text()='Разрешение']//following::div/select[1]"));          // Работа с ListBox (Select)
-//        scrollToElement(element);                                                                                            // Прогрутка до элемента
-//        element.click();
-//        driver.findElement(By.xpath("//span[text()='Разрешение']/following::div/select[1]/option[2]")).click();
+        setCheckBox("LG");
+        setCheckBox("AOC");
+        resetCheckBox("LG");
 
-//        selectOptions("Разрешение",1,3);
+        selectOptions("Диагональ",2,5);
+        selectOptions("Разрешение",2,3);
 
-        // Получение группы элементов
-//        List<WebElement> elements = driver.findElements(By.xpath("//div[@id='schema-filter']/div[2]/div[3]//span[@class='i-checkbox']"));
-//        elements.get(3).click();
+        jse.executeScript("window.scrollBy(0, -2000)","");
 
-        // Работа с таблицей
+        actions.moveToElement(driver.findElement(By.xpath("//span[text()='Новости']"))).build().perform();
 
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // Получение и сохранение снимков экрана
+        // Получение снимка экрана
+        File screenshot = ((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
+        // Подготовка имени файла
+        String fileName = new SimpleDateFormat("YYYY-MM-DD hh_mm_ss").format(new Date());
+        // Запись файла
+        try {
+            FileUtils.copyFile(screenshot, new File(".\\screenshots\\" + fileName+ ".png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-//        driver.quit();
+        driver.quit();
     }
 
     public static boolean scrollToElement(WebElement element) {
@@ -70,15 +97,24 @@ public class TestOnliner {
     }
 
     public static void selectOptions(String listname, int leftIndex, int rightIndex){
-        String xPath = "//span[text()='%s']//following::div/select[%d]";
+        WebElement element;
+        String xPath = "//span[text()='%s']//following::select[%d]";
 
         scrollToElement(driver.findElement(By.xpath(String.format(xPath,listname,1))));
 
         driver.findElement(By.xpath(String.format(xPath,listname,1))).click();
-        driver.findElement(By.xpath(String.format(xPath+"/option[%d]",listname,1,leftIndex))).click();
+
+        element = driver.findElement(By.xpath(String.format(xPath+"/option[%d]",listname,1,leftIndex)));
+        waiter1.until(ExpectedConditions.visibilityOf(element));
+        element.click();
+//        waiter.until(ExpectedConditions.invisibilityOf(element));
 
         driver.findElement(By.xpath(String.format(xPath,listname,2))).click();
-        driver.findElement(By.xpath(String.format(xPath+"/option[%d]",listname,1,leftIndex))).click();
+
+        element = driver.findElement(By.xpath(String.format(xPath+"/option[%d]",listname,2,rightIndex)));
+        waiter1.until(ExpectedConditions.visibilityOf(element));
+        element.click();
+//        waiter.until(ExpectedConditions.invisibilityOf(element));
     }
 
 
